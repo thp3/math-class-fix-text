@@ -1,0 +1,572 @@
+/* Claude-inspired classroom UI
+   Source of truth: DESIGN-claude.md
+   Goal: warm editorial surfaces + high-legibility math/solutions, including 4:3 projectors. */
+
+:root {
+  --ui-primary: #cc785c;
+  --ui-primary-active: #a9583e;
+  --ui-canvas: #faf9f5;
+  --ui-surface-soft: #f5f0e8;
+  --ui-surface-card: #efe9de;
+  --ui-surface-strong: #e8e0d2;
+  --ui-dark: #181715;
+  --ui-dark-elevated: #252320;
+  --ui-ink: #141413;
+  --ui-body: #3d3d3a;
+  --ui-muted: #6c6a64;
+  --ui-hairline: #e6dfd8;
+  --ui-on-dark: #faf9f5;
+  --ui-success: #3f7f58;
+  --ui-radius: 12px;
+  --ui-radius-sm: 8px;
+  --display-serif: "Iowan Old Style", "Palatino Linotype", "Noto Serif TC", "Songti TC", Georgia, serif;
+  --body-sans: Inter, "Noto Sans TC", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ---------- Canvas / typography ---------- */
+html, body { background: var(--ui-canvas); }
+body {
+  color: var(--ui-ink);
+  font-family: var(--body-sans);
+  background: var(--ui-canvas) !important;
+}
+
+button { font-family: var(--body-sans); }
+
+.cover {
+  background: var(--ui-canvas);
+  border-top-color: var(--ui-primary) !important;
+}
+.cover-inner {
+  max-width: 1160px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 48px 40px 40px;
+}
+.cover-eyebrow {
+  color: var(--ui-muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: none;
+}
+.cover-eyebrow::after {
+  background: var(--ui-primary) !important;
+  font-weight: 600 !important;
+}
+.cover-title,
+.divider .dv-title,
+.slide-title {
+  font-family: var(--display-serif);
+  font-weight: 400 !important;
+  letter-spacing: -.025em;
+}
+.cover-title {
+  color: var(--ui-ink);
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  font-size: clamp(46px, 6vw, 68px);
+}
+.cover-sub {
+  color: var(--ui-body);
+  font-weight: 400;
+  line-height: 1.6;
+}
+.cover-chapters { gap: 12px; }
+.cover-card {
+  background: var(--ui-surface-card);
+  border: 1px solid var(--ui-hairline);
+  border-top: 0;
+  border-radius: var(--ui-radius);
+  box-shadow: none;
+  padding: 18px 18px 20px;
+}
+.cover-card .cc-num {
+  color: var(--ui-primary);
+  font-weight: 600;
+}
+.cover-card .cc-title {
+  color: var(--ui-ink);
+  font-family: var(--display-serif);
+  font-weight: 400;
+  font-size: 20px;
+  letter-spacing: -.01em;
+}
+.cover-card .cc-list {
+  color: var(--ui-body);
+  font-size: 13px;
+  line-height: 1.65;
+}
+.cover-start {
+  min-height: 44px;
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-primary);
+  box-shadow: none;
+  font-weight: 600;
+  padding: 12px 24px;
+}
+.cover-start:hover {
+  transform: none;
+  background: var(--ui-primary-active);
+  box-shadow: none;
+}
+.cover-hint { color: var(--ui-muted); }
+
+/* ---------- App chrome ---------- */
+.topbar {
+  height: 64px;
+  gap: 16px;
+  padding: 0 20px;
+  background: rgba(250,249,245,.97) !important;
+  border-bottom: 1px solid var(--ui-hairline) !important;
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+.home-btn {
+  color: var(--ui-ink);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.home-btn::after {
+  background: var(--ui-primary) !important;
+  color: #fff;
+  font-weight: 600 !important;
+}
+.crumb {
+  color: var(--ui-muted);
+  font-weight: 500;
+}
+.crumb b { color: var(--ui-ink); font-weight: 600; }
+.ghost-btn {
+  min-height: 40px;
+  border: 1px solid var(--ui-hairline);
+  background: var(--ui-canvas);
+  border-radius: var(--ui-radius-sm);
+  box-shadow: none;
+  color: var(--ui-ink);
+  font-weight: 600;
+}
+
+.body { grid-template-columns: 248px minmax(0,1fr); background: var(--ui-canvas); }
+
+/* Dark product-surface sidebar: strong navigation without stealing slide contrast. */
+.toc {
+  background: var(--ui-dark);
+  border-right: 0;
+  border-left: 0 !important;
+  padding: 16px 12px 36px;
+  scrollbar-color: #4b4944 transparent;
+}
+.toc-chead {
+  color: var(--ui-on-dark);
+  font-weight: 600;
+  border-radius: var(--ui-radius-sm);
+}
+.toc-chead:hover { background: var(--ui-dark-elevated); }
+.toc-dot { background: var(--ui-primary); }
+.toc-shead,
+.toc-ghead { color: #d9d5cd; }
+.toc-shead:hover,
+.toc-ghead:hover { background: var(--ui-dark-elevated); }
+.toc-shead::before,
+.toc-ghead::before { color: #a09d96; }
+.toc-shead .ts-sec,
+.toc-ghead .tg-name { color: var(--ui-on-dark); font-weight: 600; }
+.toc-shead .ts-name { color: #c8c4bc; font-weight: 500; }
+.toc-shead .ts-n,
+.toc-ghead .tg-n {
+  color: #cbc7bf;
+  background: var(--ui-dark-elevated);
+}
+.toc-item {
+  color: #b9b5ad;
+  border-left-color: #45423d;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.toc-item:hover {
+  color: var(--ui-on-dark);
+  background: var(--ui-dark-elevated);
+}
+.toc-item.active {
+  color: #fff;
+  border-left-color: var(--ui-primary);
+  background: var(--ui-dark-elevated);
+  font-weight: 600;
+}
+.toc-item .ti-sec { color: #918d85; }
+
+/* ---------- Slide canvas ---------- */
+.stage {
+  padding: 16px 76px 0 20px;
+  background: var(--ui-canvas);
+}
+.slide {
+  grid-template-columns: minmax(0,.88fr) minmax(0,1.12fr);
+  gap: 20px;
+  padding: 22px 24px;
+  background: var(--ui-canvas);
+  border: 1px solid var(--ui-hairline);
+  border-radius: var(--ui-radius);
+  box-shadow: 0 1px 3px rgba(20,20,19,.07);
+}
+.slide.divider {
+  background: var(--ui-primary);
+  color: #fff;
+  border: 0;
+}
+.divider .dv-num { font-weight: 600; letter-spacing: .18em; }
+.divider .dv-title { font-size: clamp(40px,5vw,60px); }
+.divider .dv-chip {
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.38);
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.slide-info {
+  padding-right: 4px;
+}
+.badge {
+  color: var(--ui-ink);
+  background: var(--ui-surface-card);
+  border: 1px solid var(--ui-hairline);
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  padding: 5px 11px;
+}
+.slide-title {
+  color: var(--ui-ink);
+  font-size: clamp(25px,2.25vw,34px);
+  line-height: 1.18;
+  margin-bottom: 12px;
+}
+.formula {
+  background: var(--ui-surface-soft);
+  border: 1px solid var(--ui-hairline);
+  border-radius: var(--ui-radius);
+  padding: 12px 14px;
+}
+.formula .formula-label {
+  color: var(--ui-primary);
+  font-weight: 600;
+}
+.formula .formula-label .pgref {
+  color: var(--ui-body);
+  background: var(--ui-canvas);
+  border-color: var(--ui-hairline);
+  font-weight: 600;
+}
+.points li {
+  color: var(--ui-body);
+  font-size: 16px;
+  line-height: 1.62;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+.points li::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ui-primary);
+  transform: none;
+}
+.points li b,
+.points .k { color: var(--ui-ink); font-weight: 700; }
+
+.example {
+  background: var(--ui-surface-card);
+  border: 0;
+  border-radius: var(--ui-radius);
+  padding: 14px 16px;
+}
+.ex-head {
+  color: var(--ui-primary);
+  font-weight: 600;
+}
+.ex-q { color: var(--ui-ink); font-size: 16px; }
+.ex-toggle,
+.ex-zoom,
+.vis-zoom,
+.ibtn {
+  border: 1px solid var(--ui-primary);
+  color: var(--ui-primary);
+  background: var(--ui-canvas);
+  border-radius: var(--ui-radius-sm);
+  font-weight: 600;
+}
+.ex-toggle:hover,
+.ex-zoom:hover,
+.vis-zoom:hover,
+.ibtn:hover,
+.ibtn.active {
+  background: var(--ui-primary);
+  color: #fff;
+}
+.ex-sol li { font-size: 15px; line-height: 1.75; }
+.ex-ans {
+  background: var(--ui-dark);
+  color: var(--ui-on-dark);
+  border-radius: var(--ui-radius-sm);
+  font-weight: 600;
+}
+
+/* ---------- Visual / question / solution panel ---------- */
+.slide-visual {
+  background: var(--ui-surface-soft);
+  border: 1px solid var(--ui-hairline);
+  border-radius: var(--ui-radius);
+  padding: 18px;
+}
+.visual-host {
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.visual-caption { color: var(--ui-muted); }
+
+/* Old projector workaround scaled every HTML question to 75% at <=1400px.
+   Readability now wins: keep natural text size and scroll only when content truly exceeds the panel. */
+.slide .slide-visual .visual-host:not(:has(> div > svg)) > * {
+  zoom: 1 !important;
+}
+.slide .slide-visual .visual-host:has(.q-row, .p-row, .q-line, .p-line, .ak-root) {
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.slide .slide-visual .visual-host:has(.q-row, .p-row, .q-line, .p-line, .ak-root) > div {
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.q-row > span:nth-child(2) {
+  font-size: clamp(17px,1.45vw,20px) !important;
+  line-height: 1.6 !important;
+}
+.p-row > span:nth-child(2) {
+  font-size: clamp(15px,1.25vw,18px) !important;
+  line-height: 1.6 !important;
+}
+.p-ans {
+  font-size: clamp(14px,1.15vw,17px) !important;
+  line-height: 1.45 !important;
+}
+
+.visual-host div:has(> .q-line, > .q-ask),
+.visual-host div:has(> .p-line, > .p-ask) {
+  min-height: 0 !important;
+  gap: 18px !important;
+  padding: 18px 20px 22px !important;
+  background: var(--ui-surface-card) !important;
+  border: 1px solid var(--ui-hairline) !important;
+  border-radius: var(--ui-radius) !important;
+}
+.q-line, .q-ask, .p-line, .p-ask {
+  font-size: clamp(18px,1.55vw,22px) !important;
+  line-height: 1.58 !important;
+  padding-left: 0 !important;
+}
+.q-line mjx-container,
+.q-ask mjx-container,
+.p-line mjx-container,
+.p-ask mjx-container {
+  font-size: 108% !important;
+}
+.q-next, .p-next {
+  min-height: 40px;
+  background: var(--ui-primary) !important;
+  border-color: var(--ui-primary) !important;
+  border-radius: var(--ui-radius-sm) !important;
+  font-weight: 600 !important;
+}
+.q-all, .p-all, .q-back, .p-back, .p-sol {
+  min-height: 40px;
+  background: var(--ui-canvas) !important;
+  border-color: var(--ui-hairline) !important;
+  color: var(--ui-ink) !important;
+  border-radius: var(--ui-radius-sm) !important;
+  font-weight: 600 !important;
+}
+.q-fig, .p-fig { min-height: 180px; }
+
+/* ---------- Controls ---------- */
+.ictrl {
+  background: var(--ui-canvas) !important;
+  border: 1px solid var(--ui-hairline) !important;
+  border-radius: var(--ui-radius) !important;
+  box-shadow: none !important;
+}
+.step-txt { color: var(--ui-body); font-size: 13px; line-height: 1.6; }
+.step-txt b, .step-hint, .ival { color: var(--ui-primary); }
+
+.controlbar { padding: 10px 0 12px; }
+.nav-btn {
+  min-height: 42px;
+  border: 1px solid var(--ui-hairline);
+  background: var(--ui-canvas);
+  color: var(--ui-ink);
+  border-radius: var(--ui-radius-sm);
+  box-shadow: none;
+  font-weight: 600;
+}
+.nav-btn:hover:not(:disabled) {
+  border-color: var(--ui-primary);
+  color: var(--ui-primary);
+}
+#nextBtn {
+  background: var(--ui-primary);
+  border-color: var(--ui-primary);
+  color: #fff;
+}
+#nextBtn:hover:not(:disabled) {
+  background: var(--ui-primary-active);
+  color: #fff;
+}
+.progress-track { background: var(--ui-surface-strong); }
+.progress-fill {
+  background: var(--ui-primary);
+}
+.progress-text { color: var(--ui-muted); font-weight: 600; }
+
+/* Dock becomes the dark "product chrome" surface from the reference design. */
+.dock {
+  right: 12px;
+  padding: 8px 7px;
+  gap: 5px;
+  background: rgba(24,23,21,.96);
+  border: 1px solid #34322e;
+  border-radius: var(--ui-radius);
+  box-shadow: 0 1px 3px rgba(20,20,19,.14);
+  backdrop-filter: blur(10px);
+}
+.dbtn {
+  color: var(--ui-on-dark);
+  border-radius: var(--ui-radius-sm);
+}
+.dbtn:hover { background: var(--ui-dark-elevated); color: #fff; }
+.dbtn.active,
+#dkLaser.active,
+#dkPen.active { background: var(--ui-primary); color: #fff; }
+.dsep { background: #44413c; }
+.dcolor { border-color: var(--ui-dark); }
+
+/* ---------- Full-screen explanation ---------- */
+.zoom-modal {
+  background: var(--ui-canvas);
+}
+.zoom-bar {
+  background: rgba(250,249,245,.98);
+  border-bottom: 1px solid var(--ui-hairline) !important;
+}
+.zoom-badge { color: var(--ui-ink); font-weight: 600; }
+.zoom-badge::before {
+  background: var(--ui-primary) !important;
+  font-weight: 600 !important;
+}
+.zoom-btn {
+  min-height: 40px;
+  border-radius: var(--ui-radius-sm);
+  border-color: var(--ui-hairline);
+  color: var(--ui-ink);
+  background: var(--ui-canvas);
+  font-weight: 600;
+}
+.zoom-btn:hover { background: var(--ui-surface-card); color: var(--ui-ink); }
+.zoom-x { border-color: var(--ui-primary); color: var(--ui-primary); }
+.zoom-x:hover { background: var(--ui-primary); color: #fff; }
+.zoom-q {
+  color: var(--ui-ink);
+  font-size: clamp(24px,3vw,40px);
+  line-height: 1.7;
+}
+.zoom-sol {
+  border-top: 1px solid var(--ui-hairline);
+}
+.zoom-sol ol {
+  font-size: clamp(21px,2.4vw,32px);
+  line-height: 1.85;
+}
+.zoom-ans {
+  background: var(--ui-dark);
+  color: var(--ui-on-dark);
+  border-radius: var(--ui-radius);
+}
+
+/* ---------- 4:3 projector mode ----------
+   1024x768 and 1280x960 get two readable columns. We spend horizontal space on
+   the question/solution side instead of shrinking its typography. */
+@media (min-width: 900px) and (max-aspect-ratio: 3/2) and (min-height: 650px) {
+  .body { grid-template-columns: 220px minmax(0,1fr); }
+  .stage { padding: 14px 68px 0 16px; }
+  .slide:not(.divider) {
+    grid-template-columns: minmax(0,.82fr) minmax(0,1.18fr);
+    gap: 16px;
+    padding: 18px;
+    overflow: hidden;
+  }
+  .slide-info {
+    overflow: auto;
+    padding-right: 2px;
+  }
+  .slide-visual {
+    overflow: hidden;
+    padding: 16px;
+  }
+  .slide-title { font-size: clamp(24px,2.5vw,30px); }
+  .points li { font-size: 15.5px; line-height: 1.56; }
+  .q-row > span:nth-child(2) { font-size: 18px !important; }
+  .q-line, .q-ask, .p-line, .p-ask { font-size: 19px !important; }
+}
+
+/* At 1024px wide the original stylesheet stacks the two columns; restore the
+   projector-first layout when there is enough height for a 4:3 classroom screen. */
+@media (min-width: 900px) and (max-width: 1080px) and (min-height: 650px) {
+  .body { grid-template-columns: 1fr; }
+  .toc {
+    position: fixed;
+    inset: 64px auto 0 0;
+    width: min(300px, 82vw);
+    z-index: 30;
+  }
+  .slide:not(.divider) {
+    grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr);
+    overflow: hidden;
+  }
+}
+
+/* Small screens stack instead of shrinking type. */
+@media (max-width: 899px) {
+  .stage { padding: 12px 12px 0; }
+  .slide {
+    grid-template-columns: 1fr;
+    padding: 18px;
+    gap: 16px;
+    overflow-y: auto;
+  }
+  .slide-info,
+  .slide-visual { overflow: visible; }
+  .slide .slide-visual .visual-host { overflow: visible; }
+  .dock {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 66px;
+    transform: translateX(-50%);
+    flex-direction: row;
+    max-width: calc(100vw - 24px);
+  }
+  .dcolors { flex-direction: row; }
+  .dsep { width: 1px; height: 30px; margin: 5px 2px; }
+}
+
+@media (max-height: 700px) and (min-width: 900px) {
+  .topbar { height: 56px; }
+  .slide { padding-top: 16px; padding-bottom: 16px; }
+  .controlbar { padding-top: 7px; padding-bottom: 8px; }
+  .q-line, .q-ask, .p-line, .p-ask { font-size: 18px !important; }
+}

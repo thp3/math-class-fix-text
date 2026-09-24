@@ -154,6 +154,74 @@
   const prevBtn = $('prevBtn');
   const nextBtn = $('nextBtn');
 
+  const QUESTION_SCALE_MIN = 0.8;
+  const QUESTION_SCALE_MAX = 1.5;
+  const QUESTION_SCALE_STEP = 0.1;
+  const QUESTION_TEXT_QUERY = '.q-row, .p-row, .q-line, .p-line, .q-ask, .p-ask, .ak-root';
+  const QUESTION_FONT_TARGETS = [
+    ['--question-q-row-font', '.q-row > span:nth-child(2)', 18],
+    ['--question-p-row-font', '.p-row > span:nth-child(2)', 16],
+    ['--question-p-ans-font', '.p-ans', 15],
+    ['--question-line-font', '.q-line, .q-ask, .p-line, .p-ask', 20],
+    ['--question-ak-font', '.ak-a', 28]
+  ];
+  let questionScale = 1;
+
+  function clearQuestionFontVars(vis) {
+    QUESTION_FONT_TARGETS.forEach(([prop]) => vis.style.removeProperty(prop));
+  }
+
+  function updateQuestionScaleControls(controls) {
+    if (!controls) return;
+    const value = controls.querySelector('.question-size-value');
+    if (value) value.textContent = Math.round(questionScale * 100) + '%';
+    const down = controls.querySelector('[data-question-size="down"]');
+    const up = controls.querySelector('[data-question-size="up"]');
+    if (down) down.disabled = questionScale <= QUESTION_SCALE_MIN + 0.001;
+    if (up) up.disabled = questionScale >= QUESTION_SCALE_MAX - 0.001;
+  }
+
+  function applyQuestionScale(vis, host, controls) {
+    if (!vis || !host || !host.querySelector(QUESTION_TEXT_QUERY)) {
+      if (controls) controls.classList.add('hidden');
+      if (vis) vis.classList.remove('has-question-size-controls');
+      return;
+    }
+
+    clearQuestionFontVars(vis);
+    const bases = QUESTION_FONT_TARGETS.map(([prop, selector, fallback]) => {
+      const el = host.querySelector(selector);
+      const px = el ? parseFloat(getComputedStyle(el).fontSize) : fallback;
+      return [prop, Number.isFinite(px) && px > 0 ? px : fallback];
+    });
+
+    if (Math.abs(questionScale - 1) > 0.001) {
+      bases.forEach(([prop, px]) => vis.style.setProperty(prop, (px * questionScale).toFixed(2) + 'px'));
+    }
+
+    vis.classList.add('has-question-size-controls');
+    if (controls) controls.classList.remove('hidden');
+    updateQuestionScaleControls(controls);
+  }
+
+  function buildQuestionScaleControls(vis, host) {
+    const controls = document.createElement('div');
+    controls.className = 'question-size-controls hidden';
+    controls.setAttribute('role', 'group');
+    controls.setAttribute('aria-label', '\u984c\u76ee\u6587\u5b57\u5927\u5c0f');
+    controls.innerHTML = '<button type="button" class="question-size-btn" data-question-size="down" aria-label="\u7e2e\u5c0f\u984c\u76ee\u6587\u5b57" title="\u7e2e\u5c0f\u984c\u76ee\u6587\u5b57">A&minus;</button><span class="question-size-value" aria-live="polite">100%</span><button type="button" class="question-size-btn" data-question-size="up" aria-label="\u653e\u5927\u984c\u76ee\u6587\u5b57" title="\u653e\u5927\u984c\u76ee\u6587\u5b57">A&#xff0b;</button>';
+    controls.addEventListener('click', e => {
+      const btn = e.target.closest('[data-question-size]');
+      if (!btn || btn.disabled) return;
+      const delta = btn.dataset.questionSize === 'up' ? QUESTION_SCALE_STEP : -QUESTION_SCALE_STEP;
+      questionScale = Math.max(QUESTION_SCALE_MIN, Math.min(QUESTION_SCALE_MAX, +(questionScale + delta).toFixed(2)));
+      applyQuestionScale(vis, host, controls);
+      requestAnimationFrame(fitSlide);
+    });
+    vis.appendChild(controls);
+    return controls;
+  }
+
   (function buildCover() {
     const host = $('coverChapters');
     DECK.forEach(c => {
@@ -257,6 +325,7 @@
       visZoom.textContent = '🔍 放大';
       visZoom.onclick = () => openVisualModal(s, host);
       vis.appendChild(visZoom);
+      const questionScaleControls = buildQuestionScaleControls(vis, host);
 
       slideEl.innerHTML = '';
       slideEl.appendChild(info);
@@ -267,6 +336,7 @@
       } else {
         host.innerHTML = s.visual || '';
       }
+      applyQuestionScale(vis, host, questionScaleControls);
 
       const tog = info.querySelector('.ex-toggle');
       if (tog) {
@@ -436,7 +506,13 @@
     if (!document.fullscreenElement) (document.documentElement.requestFullscreen && document.documentElement.requestFullscreen());
     else document.exitFullscreen();
   };
-  window.addEventListener('resize', () => { fitPen(); fitSlide(); fitZoomHost(); });
+  window.addEventListener('resize', () => {
+    fitPen(); fitSlide(); fitZoomHost();
+    const vis = slideEl.querySelector('.slide-visual');
+    const host = vis && vis.querySelector('.visual-host');
+    const controls = vis && vis.querySelector('.question-size-controls');
+    if (vis && host && controls && !controls.classList.contains('hidden')) applyQuestionScale(vis, host, controls);
+  });
 
   let _refitRAF = null;
   slideEl.addEventListener('input', () => {

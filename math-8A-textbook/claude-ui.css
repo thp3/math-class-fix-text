@@ -544,6 +544,27 @@ button { font-family: var(--body-sans); }
   }
 }
 
+/* 900–1080px 已經進入浮動目錄模式；不要再替右側垂直 dock 保留單邊車道，
+   否則舞台右側多出約 50px 空白，整張投影片看起來會被擠到左邊。
+   這個區間只調整舞台與 dock，保留上面的 4:3 雙欄投影配置。 */
+@media (min-width: 900px) and (max-width: 1080px) {
+  .stage {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .dock {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 66px;
+    transform: translateX(-50%);
+    flex-direction: row;
+    max-width: calc(100vw - 24px);
+  }
+  .dcolors { flex-direction: row; }
+  .dsep { width: 1px; height: 30px; margin: 5px 2px; }
+}
+
 /* Small screens stack instead of shrinking type. */
 @media (max-width: 899px) {
   .stage { padding: 12px 12px 0; }
